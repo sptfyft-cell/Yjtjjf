@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini YouTube Viewer</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0f0f0f;
+    color:white;
+}
+
+header{
+    background:#202020;
+    padding:15px;
+    display:flex;
+    gap:10px;
+}
+
+input{
+    flex:1;
+    padding:10px;
+    font-size:16px;
+}
+
+button{
+    padding:10px 20px;
+    background:#ff0000;
+    border:none;
+    color:white;
+    cursor:pointer;
+}
+
+#player{
+    width:100%;
+    height:55vh;
+    border:none;
+}
+
+#results{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
+    gap:15px;
+    padding:15px;
+}
+
+.video{
+    cursor:pointer;
+}
+
+.video img{
+    width:100%;
+    border-radius:6px;
+}
+
+.video p{
+    font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<input id="searchBox" placeholder="Search YouTube">
+<button onclick="search()">Search</button>
+</header>
+
+<iframe id="player"></iframe>
+
+<div id="results"></div>
+
+<script>
+
+async function search(){
+
+    let query = document.getElementById("searchBox").value;
+
+    let response = await fetch(
+        "https://corsproxy.io/?https://www.youtube.com/results?search_query=" 
+        + encodeURIComponent(query)
+    );
+
+    let text = await response.text();
+
+    let videoIDs = [...text.matchAll(/"videoId":"(.*?)"/g)]
+        .map(x=>x[1])
+        .filter((v,i,a)=>a.indexOf(v)===i)
+        .slice(0,20);
+
+    let results = document.getElementById("results");
+    results.innerHTML = "";
+
+    videoIDs.forEach(id=>{
+        let div = document.createElement("div");
+        div.className="video";
+
+        div.innerHTML = `
+        <img src="https://img.youtube.com/vi/${id}/hqdefault.jpg">
+        <p>${id}</p>
+        `;
+
+        div.onclick=()=>{
+            document.getElementById("player").src =
+            "https://www.youtube.com/embed/"+id;
+        };
+
+        results.appendChild(div);
+    });
+}
+
+</script>
+
+</body>
+</html>
